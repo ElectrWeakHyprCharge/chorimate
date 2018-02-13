@@ -33,25 +33,33 @@ MESSAGE = (
 
 PATTERN = re.compile('!(%s) ?(\/?u\/[a-z\-\_]{3,20})?' % '|'.join([key for key in WORDMAP]))    
 ACCENT_CORRECTION = {'í': 'i', 'á':'a'} #Para tonterias == tonterías, choripán == choripan etc.
-    
+
+reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 0129395675843884932')
+
 def load_data():
     """Tries to load pickled file"""
     try:
         with open('data.pickle', 'rb') as p: data = pickle.load(p)
     except Exception as e:
-        print('CHORIMATE: @rpe', e) #Read Pickle Error
+        print('CHORIMATE: Loading error', e)
         data = {}
         input('Hubo un error al abrir data.pickle. Enter para continuar; Ctrl+C para salir') #Funciona como pausa, tengo que mejorar esto
     return data
-    
-def match(content, ignore_accents = False):
+
+def get_user(group_2, comment):
+    try: return next(reddit.redditor(normalize_username(group_2 or comment.parent().author.name)).comments.new()).author.name
+    except AttributeError as e: #Si parent().author == None y not user
+        print('\nCHORIMATE: ERROR', e)
+        return None
+
+def match(comment, ignore_accents = False):
     """Returns a set with the people mentioned in the title"""
 
-    content = content.casefold()
+    content = comment.body.casefold()
     if ignore_accents:
         content = ''.join([ACCENT_CORRECTION.get(char, '') or char for i, char in enumerate(content)])
                 
-    return {(m.group(1), m.group(2)) for m in PATTERN.finditer(content)}
+    return {e for e in {(m.group(1), get_user(m.group(2), comment)) for m in PATTERN.finditer(content)} if e[1] != None}
     
 def normalize_username(username):
     """Removes the prefix of a username"""
@@ -73,18 +81,14 @@ def reply(comment, beneficiado, beneficiador, veces, cosa):
     ))
 
 def handle_matches(comment, times):
-    matches = match(comment.body, True)
+    matches = match(comment, True)
     if not matches: return False
         
-    print('CHORIMATE: Matches:',  matches) #Handle STart
+    print('CHORIMATE: Matches:',  matches) 
     t = 0
     for comment_type, user in matches:
         t += 1
         print('*', end = '')
-        try: user = user or comment.parent().author.name
-        except AttributeError as e: #Si parent().author == None y not user
-            print('\nCHORIMATE: ERROR', e)
-            return
         user_lowercase = normalize_username(user).casefold()
         
         cosa = WORDMAP[comment_type]
@@ -95,7 +99,7 @@ def handle_matches(comment, times):
         for _ in range(5):
             try: reply(comment, user, comment.author.name, times[user_lowercase, cosa], cosa)
             except Exception as e:
-                print('\nCHORIMATE: REPLY ERROR', e) #Reply ERror
+                print('\nCHORIMATE: REPLY ERROR', e) 
                 t.sleep(6)
                 print('CHORIMATE: Retrying...')
             else: break
@@ -109,7 +113,7 @@ def mainloop(sub, times):
         if comment.saved: continue
         comment.save()
         
-        print('CHORIMATE: Reading:', comment.permalink) #start comment analysis
+        print('CHORIMATE: Reading:', comment.permalink)
         if handle_matches(comment, times):
             i = (i + 1) % 3
             if not i: save_data()
@@ -122,7 +126,6 @@ def save_data():
     
 if __name__ == '__main__':
     print('CHORIMATE: Start')
-    reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 0129395675843884932')
     sub = reddit.subreddit('uruguay+test')
     
     times = load_data()
