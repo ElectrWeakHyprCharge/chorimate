@@ -1,0 +1,9 @@
+Every line starting with # is read, the others are ignored
+
+
+#http://www.fmlink.com.ar/notix/multimedia/imagenes/fotos/2015-11-30/261271.jpg
+#http://uruguay.espaciovip.com/wp-content/uploads/2017/08/mate-uruguayo.jpg
+#http://en.mercopress.com/data/cache/noticias/41080/0x0/1-mate-thermo.jpg
+#http://nexodiario.com/wp-content/uploads/2017/11/mate.jpg
+
+

@@ -1,0 +1,9 @@
+Every line starting with # is read
+the others are ignored
+
+#https://i.imgur.com/3lkdsKj.jpg
+#https://k60.kn3.net/F26641BA5.jpg
+#http://asadacho.com/wp-content/uploads/2014/12/chorizo-asado.jpg
+#https://i.ytimg.com/vi/KTyBe7ErIQM/maxresdefault.jpg
+
+
