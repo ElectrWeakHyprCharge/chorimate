@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 #! -*- coding: utf-8 -*-
 
-import praw, pickle, re
+import praw
+import re
+import data as d
 from random import choice
-import atexit
 from time import sleep
 from os import path
 import logging
+import atexit
 
 
 PATH = path.dirname(path.abspath(__file__))
@@ -14,10 +16,8 @@ PATH += '' if PATH.endswith('/') else '/'
 
 logging.basicConfig(filename = PATH + 'ChoriMate.log', level=logging.DEBUG)
 
-
-
-with open(PATH + 'Choripanes.txt', 'r') as f: choripanes = f.read().splitlines()
-with open(PATH + 'Mates.txt', 'r')      as f: mates = f.read().splitlines()
+with open(PATH + 'img/Choripanes.txt', 'r') as f: choripanes = f.read().splitlines()
+with open(PATH + 'img/Mates.txt', 'r')      as f: mates = f.read().splitlines()
 
 IMAGES = {
     'choripán': [line[1:] for line in choripanes if line.startswith('#')],
@@ -39,11 +39,13 @@ reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 01293
 def load_data():
     """Tries to load pickled file"""
     try:
-        with open('data.pickle', 'rb') as p: data = pickle.load(p)
+        #with open('data.pickle', 'rb') as p: data = pickle.load(p)
+        with open('data.json', 'r') as f: data = d.load(f)
     except Exception as e:
         print('CHORIMATE: Loading error', e)
         data = {}
         input('Hubo un error al abrir data.pickle. Enter para continuar; Ctrl+C para salir') #Funciona como pausa, tengo que mejorar esto
+    print(data)
     return data
 
 def get_user(group_2, comment):
@@ -58,9 +60,9 @@ def match(comment, ignore_accents = False):
     content = comment.body.casefold()
     if ignore_accents:
         content = ''.join([ACCENT_CORRECTION.get(char, '') or char for i, char in enumerate(content)])
-                
-    return {e for e in {(m.group(1), get_user(m.group(2), comment)) for m in PATTERN.finditer(content)} if e[1] != None}
     
+    return {e for e in {(m.group(1), get_user(m.group(2), comment)) for m in PATTERN.finditer(content)} if e[1] != None}
+
 def normalize_username(username):
     """Removes the prefix of a username"""
 
@@ -106,7 +108,7 @@ def handle_matches(comment, times):
         if len(matches) > t: sleep(6) #Reddit da error si respondo con una diferencia menor a 5 segundos
     print()
     return True
-    
+
 def mainloop(sub, times):
     i = 0
     for comment in sub.stream.comments():
@@ -117,12 +119,13 @@ def mainloop(sub, times):
         if handle_matches(comment, times):
             i = (i + 1) % 3
             if not i: save_data()
-        
+ 
 @atexit.register
 def save_data():
     print('CHORIMATE: Saving...')
-    with open('data.pickle', 'wb') as p:
-        pickle.dump(times, p)
+    with open('data.json', 'w') as p:
+        #pickle.dump(times, p)
+        d.dump(times, p)
     
 if __name__ == '__main__':
     print('CHORIMATE: Start')
