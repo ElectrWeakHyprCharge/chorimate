@@ -37,7 +37,7 @@ ACCENT_CORRECTION = {'í': 'i', 'á':'a'} #Para tonterias == tonterías, chorip�
 reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 0129395675843884932')
 
 def load_data():
-    """Try to data from file"""
+    """Try to get saved data from file"""
     try:
         #with open('data.pickle', 'rb') as p: data = pickle.load(p)
         with open('data.json', 'r') as f: data = d.load(f)
