@@ -37,7 +37,7 @@ ACCENT_CORRECTION = {'í': 'i', 'á':'a'} #Para tonterias == tonterías, chorip�
 reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 0129395675843884932')
 
 def load_data():
-    """Tries to load pickled file"""
+    """Try to data from file"""
     try:
         #with open('data.pickle', 'rb') as p: data = pickle.load(p)
         with open('data.json', 'r') as f: data = d.load(f)
@@ -55,7 +55,7 @@ def get_user(group_2, comment):
         return None
 
 def match(comment, ignore_accents = False):
-    """Returns a set with the people mentioned in the title"""
+    """Return a set with the people mentioned in the title of the supplied comment object"""
 
     content = comment.body.casefold()
     if ignore_accents:
@@ -64,7 +64,7 @@ def match(comment, ignore_accents = False):
     return {e for e in {(m.group(1), get_user(m.group(2), comment)) for m in PATTERN.finditer(content)} if e[1] != None}
 
 def normalize_username(username):
-    """Removes the prefix of a username"""
+    """Remove the prefix of a username"""
 
     if username.startswith('/u/'):
         return username[3:]
