@@ -39,12 +39,11 @@ reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 01293
 def load_data():
     """Try to get saved data from file"""
     try:
-        #with open('data.pickle', 'rb') as p: data = pickle.load(p)
-        with open('data.json', 'r') as f: data = d.load(f)
+        with open(PATH + 'data.json', 'r') as f: data = d.load(f)
     except Exception as e:
         print('CHORIMATE: Loading error', e)
         data = {}
-        input('Hubo un error al abrir data.pickle. Enter para continuar; Ctrl+C para salir') #Funciona como pausa, tengo que mejorar esto
+        input('Hubo un error al abrir data.json. Enter para continuar; Ctrl+C para salir') #Funciona como pausa, tengo que mejorar esto
     print(data)
     return data
 
@@ -124,12 +123,11 @@ def mainloop(sub, times):
 def save_data():
     print('CHORIMATE: Saving...')
     with open('data.json', 'w') as p:
-        #pickle.dump(times, p)
         d.dump(times, p)
     
 if __name__ == '__main__':
     print('CHORIMATE: Start')
-    sub = reddit.subreddit('uruguay+test')
+    sub = reddit.subreddit('uruguay+pitcnt+rou')
     
     times = load_data()
     while True:
