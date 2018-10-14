@@ -1,143 +1,131 @@
 #!/usr/bin/env python
 #! -*- coding: utf-8 -*-
 
-import praw
-import re
-import data as d
+from unicodedata import normalize
+from typing import Dict, Optional
+from traceback import print_exc
 from random import choice
 from time import sleep
 from os import path
-import logging
-import atexit
+import json
+import re
+
+from praw.models import Comment
+import praw
 
 
-PATH = path.dirname(path.abspath(__file__))
-PATH += '' if PATH.endswith('/') else '/'
+reddit = praw.Reddit('chorimate')
+sub = reddit.subreddit('uruguay+rou')
+with open('data.json', 'r') as f:
+    userdata = json.load(f)
 
-logging.basicConfig(filename = PATH + 'ChoriMate.log', level=logging.DEBUG)
 
-with open(PATH + 'img/Choripanes.txt', 'r') as f: choripanes = f.read().splitlines()
-with open(PATH + 'img/Mates.txt', 'r')      as f: mates = f.read().splitlines()
+def load_images(from_path: str, path_prefix: Optional[str]=None):
+    filepath = path.join(
+        path_prefix or path.dirname(path.abspath(__file__)),
+        from_path
+    )
 
-IMAGES = {
-    'choripán': [line[1:] for line in choripanes if line.startswith('#')],
-    'mate':     [line[1:] for line in mates if line.startswith('#')], 
+    with open(filepath, 'r') as f:
+        return [link[1:] for link in f.read().splitlines()
+                if link.startswith('#')]
+
+
+COMMANDS = {
+    # Command: (reward, reward_images)
+    '!redditchoripan': ('choripán', load_images('img/choripan')),
+    '!tomateunmate':   ('mate',     load_images('img/mate'))
 }
 
-WORDMAP = {'redditchoripan': 'choripán', 'tomateunmate': 'mate'}
-
-MESSAGE = (
-    '#[Aquí está tu {coso}, /u/{beneficiado}!]({img}  "{coso}")\n\n'
-    '/u/{beneficiado} recibió {coso} {n} vece(s). (dado por /u/{beneficiador})'
+PATTERN = re.compile(
+    '(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys())
 )
 
-PATTERN = re.compile('!(%s) ?(\/?u\/[a-z\-\_]{3,20})?' % '|'.join([key for key in WORDMAP]))    
-ACCENT_CORRECTION = {'í': 'i', 'á':'a'} #Para tonterias == tonterías, choripán == choripan etc.
 
-reddit = praw.Reddit('ChoriMate', user_agent = 'By /u/ElectrWeakHyprCharge 0129395675843884932')
+def match_commands(comment: Comment, accents=True) -> set:
+    """
+    Return a set with tuples of the form ((reward, reward_images), recipient),
+    one for each match in the body of the provided comment.
+    """
+    if not accents:
+        content = normalize('NFD', comment.body).encode('ascii', 'ignore')
+        content = content.decode('ascii')
 
-def load_data():
-    """Try to get saved data from file"""
-    try:
-        with open(PATH + 'data.json', 'r') as f: data = d.load(f)
-    except Exception as e:
-        print('CHORIMATE: Loading error', e)
-        data = {}
-        input('Hubo un error al abrir data.json. Enter para continuar; Ctrl+C para salir') #Funciona como pausa, tengo que mejorar esto
-    print(data)
-    return data
+    return {
+        (COMMANDS[m.group(1)], m.group(2) or comment.parent().author)
+        for m in PATTERN.finditer(content)
+    } 
 
-def get_user(group_2, comment):
-    try: return next(reddit.redditor(normalize_username(group_2 or comment.parent().author.name)).comments.new()).author.name
-    except AttributeError as e: #Si parent().author == None y not user
-        print('\nCHORIMATE: ERROR', e)
-        return None
 
-def match(comment, ignore_accents = False):
-    """Return a set with the people mentioned in the title of the supplied comment object"""
+def reply(comment, recipient, sender, times_received, reward, images, retries=5) -> None:
+    msg =(
+        f'#[Aquí está tu {reward}, /u/{recipient}!]'
+        f'({choice(images)} "{reward}")\n\n'
+        f'/u/{recipient} recibió {reward} {times_received} '
+        f'{"vez" if times_received == 1 else "veces"}.'
+        f'(dado por /u/{sender})'
+    )
 
-    content = comment.body.casefold()
-    if ignore_accents:
-        content = ''.join([ACCENT_CORRECTION.get(char, '') or char for i, char in enumerate(content)])
-    
-    return {e for e in {(m.group(1), get_user(m.group(2), comment)) for m in PATTERN.finditer(content)} if e[1] != None}
+    for _ in range(retries):
+        try:
+            comment.reply(msg)
+            print('Reply:')
+            print(msg.replace('\n', '\n | '))
+        except Exception as e:
+            print('Reply error')
+            print_exc()
+            print('Retrying in 5 seconds...')
+            sleep(5)
+        else:
+            break
 
-def normalize_username(username):
-    """Remove the prefix of a username"""
 
-    if username.startswith('/u/'):
-        return username[3:]
-    elif username.startswith('u/'):
-        return username[2:]
-    else:
-        return username
+def is_valid_command(comment: Comment) -> bool:
+    print('Reading:', comment.permalink)
+    matches = match_commands(comment, accents=False)
 
-def reply(comment, beneficiado, beneficiador, veces, cosa): 
-    comment.reply(MESSAGE.format(
-        beneficiado  = normalize_username(beneficiado),
-        beneficiador = normalize_username(beneficiador),
-        n            = veces,
-        coso         = cosa,
-        img          = choice(IMAGES[cosa])
-    ))
-
-def handle_matches(comment, times):
-    matches = match(comment, True)
     if not matches: return False
         
-    print('CHORIMATE: Matches:',  matches) 
-    t = 0
-    for comment_type, user in matches:
-        t += 1
-        print('*', end = '')
-        user_lowercase = normalize_username(user).casefold()
+    print('Matches:',  matches) 
+    for command, user in matches:
+        reward, reward_images = COMMANDS[command]
+
+        user_cf = user.casefold()
+        userdata[reward][user_cf] = userdata[reward].get(user_cf, 0) + 1
         
-        cosa = WORDMAP[comment_type]
-        
-        if (user_lowercase, cosa) not in times: times[user_lowercase, cosa] = 0
-        times[user_lowercase, cosa] += 1
-        
-        for _ in range(5):
-            try: reply(comment, user, comment.author.name, times[user_lowercase, cosa], cosa)
-            except Exception as e:
-                print('\nCHORIMATE: REPLY ERROR', e) 
-                t.sleep(6)
-                print('CHORIMATE: Retrying...')
-            else: break
-        if len(matches) > t: sleep(6) #Reddit da error si respondo con una diferencia menor a 5 segundos
-    print()
+        reply(
+            comment,
+            user,
+            comment.author.name,
+            userdata[reward][user_cf],
+            reward, reward_images
+        )
+        sleep(1)
     return True
 
-def mainloop(sub, times):
-    i = 0
+
+def main():
     for comment in sub.stream.comments():
         if comment.saved: continue
-        comment.save()
         
-        print('CHORIMATE: Reading:', comment.permalink)
-        if handle_matches(comment, times):
-            i = (i + 1) % 3
-            if not i: save_data()
- 
-@atexit.register
-def save_data():
-    print('CHORIMATE: Saving...')
-    with open('data.json', 'w') as p:
-        d.dump(times, p)
-    
+        if is_valid_command(comment):
+            comment.save()
+            with open('data.json', 'w') as f:
+                json.dump(userdata, f)
+                
+
 if __name__ == '__main__':
-    print('CHORIMATE: Start')
-    sub = reddit.subreddit('uruguay+pitcnt+rou')
-    
-    times = load_data()
+    print('Start')
+
     while True:
-        try: mainloop(sub, times)
-        except KeyboardInterrupt: raise
+        try:
+            main()
+        except KeyboardInterrupt:
+            break
         except Exception as e:
-            msg = 'CHORIMATE: UNCATCHED EXCEPTION IN MAINLOOP: ' + str(e) 
-            logging.exception(msg)
-            print(msg)
-            print('CHORIMATE: RETRYING')
+            msg = 'UNCATCHED EXCEPTION: '
+            print_exc()
+            print('RETRYING')
             sleep(5)
 
 
