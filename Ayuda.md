@@ -8,6 +8,7 @@ comandos:
 
  - `!redditchoripán`
  - `!tomateunmate`
+ - `!redditchivito`
 
 
 Es solo cuestión de escribir `!tomateunmate`, y el bot automáticamente ya le
@@ -40,6 +41,7 @@ podés mandar por acá o por mensaje privado de reddit a /u/ElectrWeakHyprCharge
 
 # Proximamente...
 
-Empanadas, chivitos, milanesas y el acceso de la población del departamento
-Argentino a esta magnífica herramienta culinaria.
+[ ] Empanadas
+[X] Chivitos
+[ ] Milanesas
 
