@@ -15,7 +15,7 @@ import praw
 
 
 reddit = praw.Reddit('chorimate')
-sub = reddit.subreddit('uruguay+rou')
+sub = reddit.subreddit('uruguay+rou+argentina')
 with open('data.json', 'r') as f:
     userdata = json.load(f)
 
@@ -40,14 +40,14 @@ COMMANDS = {
     '!redditchoripan': ('choripán', load_images('img/choripan')),
     '!tomateunmate':   ('mate',     load_images('img/mate')),
 
+    '!redditchivito': ('chivito', load_images('img/chivito')),
     # Capaz que algún día implemento estos:
-    # '!redditchivito': ('chivito', load_images('img/chivito')),
     # '!redditempanada': ('empanada', load_images('img/empanada')),
     # '!reddit(?:milanesa|milanga)': ('milanesa', load_images('img/milanesa')),
 }
 
 PATTERN = re.compile(
-    '(?<!\\)(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys()),
+    r'(?<!\\)(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys()),
     re.IGNORECASE
 )
 
@@ -58,7 +58,7 @@ def match_commands(comment: Comment, accents=True) -> set:
     one for each match in the body of the provided comment.
     """
     content = comment.body
-    if not accents:
+    if accents is False:
         content = normalize('NFD', content).encode('ascii', 'ignore')
         content = content.decode('ascii')
 
@@ -78,10 +78,10 @@ def reply(comment: Comment,
     msg = (
         f'#[Aquí está tu {reward}, /u/{recipient}!]({image} "{reward}")\n\n'
         f'/u/{recipient} recibió {reward} {times_received} '
-        f'{"vez" if times_received == 1 else "veces"}.'
+        f'{"vez" if times_received == 1 else "veces"}. '
         f'(dado por /u/{sender})  \n'
-        '^^[¿Qué es esto?](https://github.com/ElectrWeakHyprCharge/chorimate/'
-        'blob/master/Ayuda.md)'
+        '[^^¿Qué ^^es ^^esto?](https://github.com/ElectrWeakHyprCharge/'
+        'chorimate/blob/master/Ayuda.md)'
     )
 
     for _ in range(retries):
@@ -109,14 +109,16 @@ def is_valid_command(comment: Comment) -> bool:
     for command, user in matches:
         reward, reward_images = command
 
-        user_cf = user.casefold()
-        userdata[reward][user_cf] = userdata[reward].get(user_cf, 0) + 1
+        usercf = user.casefold()
+        if not userdata.get(reward, {}):
+            userdata[reward] = {}
+        userdata[reward][usercf] = userdata[reward].get(usercf, 0) + 1
 
         reply(
             comment=comment,
             recipient=user,
             sender=comment.author.name,
-            times_received=userdata[reward][user_cf],
+            times_received=userdata[reward][usercf],
             reward=reward,
             image=choice(reward_images)
         )
