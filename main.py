@@ -47,7 +47,7 @@ COMMANDS = {
 }
 
 PATTERN = re.compile(
-    '(?<!\\)(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys()),
+    r'(?<!\\)(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys()),
     re.IGNORECASE
 )
 
