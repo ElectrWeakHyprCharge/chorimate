@@ -14,8 +14,8 @@ from praw.models import Comment
 import praw
 
 
-reddit = praw.Reddit('chorimate')
-sub = reddit.subreddit('uruguay+rou+argentina')
+reddit = praw.Reddit('chorimate')  # Credentials found in praw.ini
+sub = reddit.subreddit('uruguay+rou')
 with open('data.json', 'r') as f:
     userdata = json.load(f)
 
