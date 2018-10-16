@@ -2,7 +2,7 @@
 #! -*- coding: utf-8 -*-
 
 from unicodedata import normalize
-from typing import List, Tuple, Optional
+from typing import Tuple, Optional
 from traceback import print_exc
 from random import choice
 from time import sleep
@@ -32,7 +32,7 @@ def load_images(from_path: str, path_prefix: Optional[str]=None) -> Tuple[str]:
 
     with open(filepath, 'r') as f:
         return tuple([link[1:] for link in f.read().splitlines()
-                if link.startswith('#')])
+                      if link.startswith('#')])
 
 
 COMMANDS = {
@@ -41,13 +41,14 @@ COMMANDS = {
     '!tomateunmate':   ('mate',     load_images('img/mate')),
 
     # Capaz que algún día implemento estos:
-    #'!redditchivito': ('chivito', load_images('img/chivito')),
-    #'!redditempanada': ('empanada', load_images('img/empanada')),
-    #'!reddit(?:milanesa|milanga)': ('milanesa', load_images('img/milanesa')),
+    # '!redditchivito': ('chivito', load_images('img/chivito')),
+    # '!redditempanada': ('empanada', load_images('img/empanada')),
+    # '!reddit(?:milanesa|milanga)': ('milanesa', load_images('img/milanesa')),
 }
 
 PATTERN = re.compile(
-    '(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys())
+    '(?<!\\)(%s)(?: /?u/([a-z_-]{3,20}))?' % '|'.join(COMMANDS.keys()),
+    re.IGNORECASE
 )
 
 
@@ -74,7 +75,7 @@ def reply(comment: Comment,
           reward: str,
           image: str,
           retries: str = 5) -> None:
-    msg =(
+    msg = (
         f'#[Aquí está tu {reward}, /u/{recipient}!]({image} "{reward}")\n\n'
         f'/u/{recipient} recibió {reward} {times_received} '
         f'{"vez" if times_received == 1 else "veces"}.'
@@ -99,7 +100,8 @@ def is_valid_command(comment: Comment) -> bool:
     print('Reading:', comment.permalink)
     matches = match_commands(comment, accents=False)
 
-    if not matches: return False
+    if not matches:
+        return False
 
     print('Matches:',  matches)
     for command, user in matches:
@@ -122,7 +124,8 @@ def is_valid_command(comment: Comment) -> bool:
 
 def main() -> None:
     for comment in sub.stream.comments():
-        if comment.saved: continue
+        if comment.saved:
+            continue
 
         if is_valid_command(comment):
             comment.save()
