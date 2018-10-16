@@ -79,7 +79,9 @@ def reply(comment: Comment,
         f'#[Aquí está tu {reward}, /u/{recipient}!]({image} "{reward}")\n\n'
         f'/u/{recipient} recibió {reward} {times_received} '
         f'{"vez" if times_received == 1 else "veces"}.'
-        f'(dado por /u/{sender})'
+        f'(dado por /u/{sender})  \n'
+        '^^[¿Qué es esto?](https://github.com/ElectrWeakHyprCharge/chorimate/'
+        'blob/master/Ayuda.md)'
     )
 
     for _ in range(retries):
