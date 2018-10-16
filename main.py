@@ -38,7 +38,12 @@ def load_images(from_path: str, path_prefix: Optional[str]=None) -> Tuple[str]:
 COMMANDS = {
     # Command: (reward, reward_images)
     '!redditchoripan': ('choripán', load_images('img/choripan')),
-    '!tomateunmate':   ('mate',     load_images('img/mate'))
+    '!tomateunmate':   ('mate',     load_images('img/mate')),
+
+    # Capaz que algún día implemento estos:
+    #'!redditchivito': ('chivito', load_images('img/chivito')),
+    #'!redditempanada': ('empanada', load_images('img/empanada')),
+    #'!reddit(milanesa|milanga|mila)': ('milanesa', load_images('img/milanesa')),
 }
 
 PATTERN = re.compile(
@@ -53,9 +58,8 @@ def match_commands(comment: Comment, accents=True) -> set:
     """
     content = comment.body
     if not accents:
-        pass
-        #content = normalize('NFD', content).encode('ascii', 'ignore')
-        #content = content.decode('ascii')
+        content = normalize('NFD', content).encode('ascii', 'ignore')
+        content = content.decode('ascii')
     
     return {
         (COMMANDS[m.group(1)], m.group(2) or comment.parent().author.name)
@@ -127,17 +131,15 @@ def main() -> None:
                 
 
 if __name__ == '__main__':
-    print('Start')
-
     while True:
         try:
             main()
         except KeyboardInterrupt:
             break
         except Exception as e:
-            msg = 'UNCATCHED EXCEPTION: '
+            msg = 'Uncatched exception: '
             print_exc()
-            print('RETRYING')
+            print('Retrying')
             sleep(5)
 
 
