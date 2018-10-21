@@ -36,12 +36,11 @@ Solo funciona en comentarios.
 
 # Quejas, puteos, ideas y sugerencias
 
-Los primeros dos guardeselos. Si en cambio tenés una idea o sugerencia, me la
-podés mandar por acá o por mensaje privado de reddit a /u/ElectrWeakHyprCharge.
+Los primeros dos guárdeselos. Si en cambio tenés una idea o sugerencia, me la
+podes mandar por acá o por mensaje privado de reddit a /u/ElectrWeakHyprCharge.
 
 # Proximamente...
 
-[ ] Empanadas
-[X] Chivitos
-[ ] Milanesas
-
+- [ ] Empanadas
+- [x] Chivitos
+- [ ] Milanesas
