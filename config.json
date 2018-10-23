@@ -25,5 +25,11 @@
         "images": [
             "http://www.factoriafm.com/wp-content/uploads/2018/01/FactoReceta-de-la-abuela-Chivito-uruguayo.jpg"
         ]
+    },
+    "!redditmilanga": {
+        "reward": "milanesa",
+        "images": [
+            "https://sc2.elpais.com.uy/files/article_default_content/uploads/2017/09/09/59b3843a98d9d.jpeg"
+        ]
     }
 }
