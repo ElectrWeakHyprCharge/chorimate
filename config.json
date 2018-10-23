@@ -1,0 +1,29 @@
+{
+    "!tomateunmate": {
+        "reward": "mate",
+        "images": [
+            "https://i.imgur.com/yzysLUG.png",
+            "https://i.imgur.com/1fRE9JP.jpg",
+            "https://i.imgur.com/KO7lycy.jpg",
+            "https://i.imgur.com/ffR2azt.png",
+            "https://i.imgur.com/28Vhv8t.jpg",
+            "https://i.imgur.com/aNd466W.jpg",
+            "https://i.imgur.com/qdYWjtG.jpg"
+        ]
+    },
+    "!redditchoripan": {
+        "reward": "choripán",
+        "images": [
+            "https://i.imgur.com/3lkdsKj.jpg",
+            "https://k60.kn3.net/F26641BA5.jpg",
+            "http://asadacho.com/wp-content/uploads/2014/12/chorizo-asado.jpg",
+            "https://i.ytimg.com/vi/KTyBe7ErIQM/maxresdefault.jpg"
+        ]
+    },
+    "!redditchivito": {
+        "reward": "chivito",
+        "images": [
+            "http://www.factoriafm.com/wp-content/uploads/2018/01/FactoReceta-de-la-abuela-Chivito-uruguayo.jpg"
+        ]
+    }
+}
