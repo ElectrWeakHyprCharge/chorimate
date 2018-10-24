@@ -19,5 +19,5 @@ def save(userdata: Userdata):
 
 def commands() -> Dict[str, Tuple[Reward, Links]]:
     with open('config.json', 'r') as f:
-        return {k : (cmd["reward"], cmd["images"])
+        return {k : (cmd["reward"], tuple(cmd["images"]))
                 for k, cmd in json.load(f).items()}
