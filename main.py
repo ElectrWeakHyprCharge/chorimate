@@ -39,7 +39,7 @@ def match_commands(comment: Comment, accents=True) -> set:
         content = remove_accents(comment.body)
 
     return {
-        (commands[m.group(1)], m.group(2) or comment.parent().author.name)
+        (commands[m.group(1)].lower(), m.group(2) or comment.parent().author.name)
         for m in PATTERN.finditer(content)
     }
 
